@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { MembersPage } from './pages/MembersPage';
+import { MyApiKeysPage } from './pages/MyApiKeysPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/api-keys"
+        element={
+          <ProtectedRoute>
+            <MyApiKeysPage />
           </ProtectedRoute>
         }
       />

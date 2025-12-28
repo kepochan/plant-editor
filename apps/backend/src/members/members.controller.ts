@@ -133,7 +133,50 @@ export class MembersController {
     await this.memberRepository.remove(member);
   }
 
-  // ===== API Keys Management =====
+  // ===== My API Keys (self-management) =====
+
+  @Get('me/api-keys')
+  async getMyApiKeys(@Req() req: any): Promise<ApiKey[]> {
+    return this.apiKeyRepository.find({
+      where: { memberId: req.user.id },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  @Post('me/api-keys')
+  async createMyApiKey(
+    @Body() createApiKeyDto: CreateApiKeyDto,
+    @Req() req: any,
+  ): Promise<{ apiKey: ApiKey; key: string }> {
+    const key = randomBytes(32).toString('hex');
+
+    const apiKey = this.apiKeyRepository.create({
+      key,
+      name: createApiKeyDto.name || `API Key ${new Date().toLocaleDateString()}`,
+      memberId: req.user.id,
+    });
+
+    const saved = await this.apiKeyRepository.save(apiKey);
+    return { apiKey: saved, key };
+  }
+
+  @Delete('me/api-keys/:keyId')
+  async deleteMyApiKey(
+    @Param('keyId') keyId: string,
+    @Req() req: any,
+  ): Promise<void> {
+    const apiKey = await this.apiKeyRepository.findOne({
+      where: { id: keyId, memberId: req.user.id },
+    });
+
+    if (!apiKey) {
+      throw new NotFoundException('API key not found');
+    }
+
+    await this.apiKeyRepository.remove(apiKey);
+  }
+
+  // ===== API Keys Management (admin) =====
 
   @Get(':memberId/api-keys')
   async getApiKeys(
@@ -166,7 +209,6 @@ export class MembersController {
       throw new NotFoundException('Member not found');
     }
 
-    // Generate a secure random API key
     const key = randomBytes(32).toString('hex');
 
     const apiKey = this.apiKeyRepository.create({
@@ -176,8 +218,6 @@ export class MembersController {
     });
 
     const saved = await this.apiKeyRepository.save(apiKey);
-
-    // Return the key only once (it won't be shown again)
     return { apiKey: saved, key };
   }
 

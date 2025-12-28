@@ -2,6 +2,14 @@
 
 Tu peux créer et éditer des diagrammes PlantUML de manière collaborative avec l'utilisateur via le système Plant Editor.
 
+## Obtenir une API Key
+
+1. Demande à un admin de whitelister ton email Gmail sur https://plant-editor.kepochan.com/members
+2. Connecte-toi avec Google sur https://plant-editor.kepochan.com
+3. Clique sur l'icône clé (Key) dans le header
+4. Crée une nouvelle API key et copie-la
+5. Ajoute-la dans ton fichier `.claude/settings.json` ou en variable d'environnement
+
 ## Configuration API
 
 - **Base URL**: `https://plant-editor-api.kepochan.com`

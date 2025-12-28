@@ -157,7 +157,7 @@ export const membersApi = {
     if (!response.ok) throw new Error('Failed to delete member');
   },
 
-  // API Keys
+  // API Keys (admin - for any member)
   getApiKeys: async (token: string, memberId: string): Promise<ApiKey[]> => {
     const response = await fetch(`${API_URL}/members/${memberId}/api-keys`, {
       headers: {
@@ -199,6 +199,43 @@ export const membersApi = {
         },
       }
     );
+    if (!response.ok) throw new Error('Failed to delete API key');
+  },
+
+  // My API Keys (self-management)
+  getMyApiKeys: async (token: string): Promise<ApiKey[]> => {
+    const response = await fetch(`${API_URL}/members/me/api-keys`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch API keys');
+    return response.json();
+  },
+
+  createMyApiKey: async (
+    token: string,
+    name?: string
+  ): Promise<{ apiKey: ApiKey; key: string }> => {
+    const response = await fetch(`${API_URL}/members/me/api-keys`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) throw new Error('Failed to create API key');
+    return response.json();
+  },
+
+  deleteMyApiKey: async (token: string, keyId: string): Promise<void> => {
+    const response = await fetch(`${API_URL}/members/me/api-keys/${keyId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     if (!response.ok) throw new Error('Failed to delete API key');
   },
 };

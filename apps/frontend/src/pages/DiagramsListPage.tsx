@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Edit2, Clock, MessageSquare, ExternalLink, LogOut, Users } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Clock, MessageSquare, ExternalLink, LogOut, Users, Key } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import type { DiagramListItem } from '../types';
@@ -101,6 +101,13 @@ export function DiagramsListPage() {
             >
               <Plus size={20} />
               Nouveau diagramme
+            </button>
+            <button
+              onClick={() => navigate('/api-keys')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+              title="My API Keys"
+            >
+              <Key size={20} />
             </button>
             {isAdmin() && (
               <button
