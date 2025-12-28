@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Edit2, Clock, MessageSquare, ExternalLink } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Clock, MessageSquare, ExternalLink, LogOut, Users } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuthStore } from '../store/authStore';
 import type { DiagramListItem } from '../types';
 
 export function DiagramsListPage() {
   const navigate = useNavigate();
+  const { user, logout, isAdmin } = useAuthStore();
   const [diagrams, setDiagrams] = useState<DiagramListItem[]>([]);
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -13,6 +15,11 @@ export function DiagramsListPage() {
   const [editingName, setEditingName] = useState('');
 
   const theme = localStorage.getItem('plant-editor-theme') || 'dark';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -87,13 +94,34 @@ export function DiagramsListPage() {
       <header className={`border-b ${borderClass} ${cardBgClass} px-6 py-4`}>
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <h1 className="text-2xl font-bold">PlantUML Editor</h1>
-          <button
-            onClick={handleCreate}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-          >
-            <Plus size={20} />
-            Nouveau diagramme
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleCreate}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              <Plus size={20} />
+              Nouveau diagramme
+            </button>
+            {isAdmin() && (
+              <button
+                onClick={() => navigate('/members')}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                title="Manage members"
+              >
+                <Users size={20} />
+              </button>
+            )}
+            <div className={`flex items-center gap-3 pl-4 border-l ${borderClass}`}>
+              <span className={`text-sm ${mutedClass}`}>{user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} transition-colors`}
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 

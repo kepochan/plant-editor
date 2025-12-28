@@ -34,6 +34,12 @@ services:
       - DATABASE_NAME=plant_editor
       - DATABASE_USER=plant_editor
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BASE_URL=https://plant-editor-api.kepochan.com
+      - FRONTEND_URL=https://plant-editor.kepochan.com
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
     depends_on:
       plant-editor-db:
         condition: service_healthy

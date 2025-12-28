@@ -47,4 +47,32 @@ export class ConfigService {
   get maxVersions(): number {
     return 100;
   }
+
+  // Google OAuth configuration
+  get googleClientId(): string {
+    return process.env.GOOGLE_CLIENT_ID || '';
+  }
+
+  get googleClientSecret(): string {
+    return process.env.GOOGLE_CLIENT_SECRET || '';
+  }
+
+  // JWT configuration
+  get jwtSecret(): string {
+    return process.env.JWT_SECRET || 'dev-jwt-secret-change-in-production';
+  }
+
+  // URLs
+  get baseUrl(): string {
+    return process.env.BASE_URL || 'http://localhost:3000';
+  }
+
+  get frontendUrl(): string {
+    return process.env.FRONTEND_URL || 'http://localhost:5173';
+  }
+
+  // Admin configuration
+  get adminEmail(): string {
+    return process.env.ADMIN_EMAIL || '';
+  }
 }
