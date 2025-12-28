@@ -105,8 +105,11 @@ docker compose stop plant-editor-backend plant-editor-frontend
 ### Variables d'environnement (.env)
 
 ```bash
-# API Key pour authentification
-PLANT_EDITOR_API_KEY=votre-cle-api-secrete
+# API Keys pour authentification (plusieurs clés séparées par virgule)
+PLANT_EDITOR_API_KEYS=cle1,cle2,cle3
+
+# Mot de passe PostgreSQL
+POSTGRES_PASSWORD=votre-mot-de-passe
 
 # Générer une nouvelle clé
 openssl rand -hex 32
@@ -116,11 +119,12 @@ openssl rand -hex 32
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `API_KEY` | `dev-api-key` | Clé API pour authentification |
+| `API_KEYS` | `dev-api-key` | Clés API séparées par virgule |
 | `PLANTUML_SERVER_URL` | `http://localhost:8083` | URL interne PlantUML |
 | `PLANTUML_PUBLIC_URL` | `https://plant.kepochan.com` | URL publique PlantUML |
 | `PORT` | `3000` | Port du serveur |
 | `CORS_ORIGIN` | `*` | Origine CORS autorisée |
+| `DATABASE_*` | - | Configuration PostgreSQL |
 
 ### Frontend (variables Vite)
 
@@ -237,7 +241,32 @@ X-API-Key: xxx
 
 ## Skill Claude Code
 
-Le skill est installé dans `~/.claude/commands/plantuml.md`.
+Le skill est inclus dans le projet sous `.claude/skills/plantuml/SKILL.md`.
+
+### Installation sur un nouveau poste
+
+1. **Générer une API key** :
+   ```bash
+   openssl rand -hex 32
+   ```
+
+2. **Ajouter la clé sur le serveur** :
+   - Éditer `.env` sur le serveur
+   - Ajouter la nouvelle clé à `PLANT_EDITOR_API_KEYS` (séparée par virgule)
+   - Redéployer : `docker compose up -d plant-editor-backend`
+
+3. **Configurer le poste local** :
+   ```bash
+   echo 'export PLANT_EDITOR_API_KEY="votre-nouvelle-cle"' >> ~/.zshrc
+   source ~/.zshrc
+   ```
+
+4. **Cloner et utiliser** :
+   ```bash
+   git clone git@github.com:kepochan/plant-editor.git
+   cd plant-editor
+   claude  # Le skill /plantuml est disponible automatiquement
+   ```
 
 ### Utilisation
 
@@ -286,14 +315,12 @@ Le skill applique automatiquement ces règles :
 - **Thème** : Sombre / Clair
 - **Raccourci** : Ctrl+Enter pour render
 
-## Sessions
+## Persistance
 
-Les sessions sont stockées **en mémoire** sur le backend :
-- TTL : 24 heures
-- Nettoyage automatique toutes les heures
-- Pas de persistance (redémarrage = perte des sessions)
-
-Pour un usage persistant, il faudrait ajouter Redis ou une base de données.
+Les données sont stockées dans **PostgreSQL** :
+- Diagrammes avec versioning (100 versions max par diagramme)
+- Commentaires liés aux lignes de code
+- Persistance complète (survit aux redémarrages)
 
 ## Développement
 
@@ -379,13 +406,13 @@ docker compose build --no-cache plant-editor-backend plant-editor-frontend
 
 ### API renvoie 401
 
-Vérifier que le header `X-API-Key` est correct et correspond à `PLANT_EDITOR_API_KEY` dans `.env`.
+Vérifier que le header `X-API-Key` est correct et que la clé est présente dans `PLANT_EDITOR_API_KEYS` dans `.env` sur le serveur.
 
 ## Améliorations possibles
 
-- [ ] Persistance des sessions (Redis/PostgreSQL)
+- [x] ~~Persistance des sessions (PostgreSQL)~~
 - [ ] Authentification utilisateur
-- [ ] Historique avec undo/redo complet
+- [x] ~~Historique avec versioning~~
 - [ ] Collaboration temps réel (WebSocket)
 - [ ] Prévisualisation live pendant l'édition
 - [ ] Plus de templates PlantUML

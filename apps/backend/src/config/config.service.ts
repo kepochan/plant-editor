@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ConfigService {
-  get apiKey(): string {
-    return process.env.API_KEY || 'dev-api-key';
+  get apiKeys(): string[] {
+    const keys = process.env.API_KEYS || process.env.API_KEY || 'dev-api-key';
+    return keys.split(',').map((k) => k.trim()).filter((k) => k.length > 0);
   }
 
   get plantUmlServerUrl(): string {

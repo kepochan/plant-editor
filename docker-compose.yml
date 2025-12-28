@@ -25,7 +25,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - API_KEY=${PLANT_EDITOR_API_KEY}
+      - API_KEYS=${PLANT_EDITOR_API_KEYS}
       - PLANTUML_SERVER_URL=http://plant:8080
       - PLANTUML_PUBLIC_URL=https://plant.kepochan.com
       - CORS_ORIGIN=https://plant-editor.kepochan.com
