@@ -1,14 +1,16 @@
-# PlantUML Editor Skill
+---
+description: Créer ou éditer un diagramme PlantUML de manière collaborative
+allowed-tools: Bash(curl:*), Bash(uuidgen), Read, Write, Glob
+argument-hint: <description du diagramme>
+---
 
-Tu peux créer et éditer des diagrammes PlantUML de manière collaborative avec l'utilisateur via le système Plant Editor.
+# PlantUML Editor
 
-## Obtenir une API Key
+Tu dois créer ou éditer un diagramme PlantUML de manière collaborative avec l'utilisateur via le système Plant Editor.
 
-1. Demande à un admin de whitelister ton email Gmail sur https://plant-editor.kepochan.com/members
-2. Connecte-toi avec Google sur https://plant-editor.kepochan.com
-3. Clique sur l'icône clé (Key) dans le header
-4. Crée une nouvelle API key et copie-la
-5. Ajoute-la dans ton fichier `.claude/settings.json` ou en variable d'environnement
+## Demande de l'utilisateur
+
+$ARGUMENTS
 
 ## Configuration API
 
@@ -18,13 +20,13 @@ Tu peux créer et éditer des diagrammes PlantUML de manière collaborative avec
 
 ## Workflow
 
-1. **Générer un Session ID** (UUID) pour une nouvelle session d'édition
+1. **Générer un Session ID** avec `uuidgen` pour une nouvelle session d'édition
 2. **Créer le diagramme** avec POST /diagram
 3. **Informer l'utilisateur** qu'il peut voir le résultat sur le frontend
 4. **Récupérer les commentaires** avec GET /comments pour itérer
 5. **Mettre à jour** le diagramme basé sur les commentaires
 6. **Répéter** jusqu'à satisfaction
-7. **Sauvegarder** le code final dans le projet
+7. **Sauvegarder** le code final dans le projet si demandé
 
 ## Endpoints API
 
@@ -185,12 +187,10 @@ package "Data" #LightCoral {
 @enduml
 ```
 
-## Exemple d'utilisation
-
-Quand l'utilisateur demande un diagramme :
+## Instructions
 
 1. Génère un UUID pour la session
-2. Crée le code PlantUML en suivant les conventions
+2. Crée le code PlantUML en suivant les conventions ci-dessus
 3. Envoie le code à l'API avec curl
 4. Indique à l'utilisateur : "Le diagramme est visible sur https://plant-editor.kepochan.com/diagram/<UUID> - tu peux ajouter des commentaires sur les lignes que tu veux modifier."
 5. Quand l'utilisateur revient, récupère les commentaires avec GET /comments
