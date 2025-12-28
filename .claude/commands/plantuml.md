@@ -1,6 +1,6 @@
 ---
 description: Créer ou éditer un diagramme PlantUML
-allowed-tools: Bash(curl -X POST https://plant-editor-api.kepochan.com/*), Bash(curl https://plant-editor-api.kepochan.com/*), Bash(uuidgen), Read, Write, Glob
+allowed-tools: Bash(curl:*), Bash(uuidgen), Read, Write, Glob
 argument-hint: <description du diagramme>
 ---
 
@@ -12,6 +12,7 @@ Crée ou édite un diagramme PlantUML via Plant Editor.
 
 ## Comportement
 
+- **Si aucune demande n'est spécifiée**, demande d'abord à l'utilisateur ce qu'il veut créer
 - **Sois CONCIS** : pas d'explications, pas de récapitulatif, juste le lien
 - Ne demande rien sauf si un commentaire est ambigu
 - Après création/modification, donne UNIQUEMENT le lien : `https://plant-editor.kepochan.com/diagram/<UUID>`
