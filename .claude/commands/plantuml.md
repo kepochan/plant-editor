@@ -1,58 +1,37 @@
 ---
-description: Créer ou éditer un diagramme PlantUML de manière collaborative
-allowed-tools: Bash(curl:*), Bash(uuidgen), Read, Write, Glob
+description: Créer ou éditer un diagramme PlantUML
+allowed-tools: Bash(curl https://plant-editor-api.kepochan.com/*), Bash(uuidgen), Read, Write, Glob
 argument-hint: <description du diagramme>
 ---
 
 # PlantUML Editor
 
-Tu dois créer ou éditer un diagramme PlantUML de manière collaborative avec l'utilisateur via le système Plant Editor.
+Crée ou édite un diagramme PlantUML via Plant Editor.
 
-## Demande de l'utilisateur
+**Demande:** $ARGUMENTS
 
-$ARGUMENTS
+## Comportement
 
-## Configuration API
+- **Sois CONCIS** : pas d'explications, pas de récapitulatif, juste le lien
+- Ne demande rien sauf si un commentaire est ambigu
+- Après création/modification, donne UNIQUEMENT le lien
+- Ne propose PAS de sauvegarder dans un fichier sauf si demandé
 
-- **Base URL**: `https://plant-editor-api.kepochan.com`
-- **API Key**: Utilise la variable d'environnement `PLANT_EDITOR_API_KEY`
-- **Frontend**: `https://plant-editor.kepochan.com`
+## API
 
-## Workflow
-
-1. **Générer un Session ID** avec `uuidgen` pour une nouvelle session d'édition
-2. **Créer le diagramme** avec POST /diagram
-3. **Informer l'utilisateur** qu'il peut voir le résultat sur le frontend
-4. **Récupérer les commentaires** avec GET /comments pour itérer
-5. **Mettre à jour** le diagramme basé sur les commentaires
-6. **Répéter** jusqu'à satisfaction
-7. **Sauvegarder** le code final dans le projet si demandé
-
-## Endpoints API
-
-### Créer/Mettre à jour un diagramme
 ```bash
+# Créer/Modifier
 curl -X POST https://plant-editor-api.kepochan.com/diagram \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $PLANT_EDITOR_API_KEY" \
   -d '{"sessionId": "<UUID>", "code": "@startuml\n...\n@enduml"}'
-```
 
-### Récupérer le diagramme
-```bash
-curl "https://plant-editor-api.kepochan.com/diagram?sessionId=<UUID>" \
-  -H "X-API-Key: $PLANT_EDITOR_API_KEY"
-```
-
-### Récupérer les commentaires
-```bash
+# Récupérer commentaires
 curl "https://plant-editor-api.kepochan.com/comments?sessionId=<UUID>" \
   -H "X-API-Key: $PLANT_EDITOR_API_KEY"
 ```
 
 ## Conventions PlantUML
-
-**TOUJOURS appliquer ces règles :**
 
 1. **`autonumber`** - Toujours activer la numérotation automatique
 2. **Box colorées** pour les macro-composants :
@@ -186,15 +165,3 @@ package "Data" #LightCoral {
 
 @enduml
 ```
-
-## Instructions
-
-1. Génère un UUID pour la session
-2. Crée le code PlantUML en suivant les conventions ci-dessus
-3. Envoie le code à l'API avec curl
-4. Indique à l'utilisateur : "Le diagramme est visible sur https://plant-editor.kepochan.com/diagram/<UUID> - tu peux ajouter des commentaires sur les lignes que tu veux modifier."
-5. Quand l'utilisateur revient, récupère les commentaires avec GET /comments
-6. Analyse les commentaires et leurs lignes associées
-7. Modifie le code et renvoie avec POST /diagram
-8. Répète jusqu'à satisfaction
-9. Propose de sauvegarder le code final dans un fichier du projet
