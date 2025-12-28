@@ -9,10 +9,13 @@ import {
   UseGuards,
   Req,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
 import { Member } from '../entities/member.entity';
+import { ApiKey } from '../entities/api-key.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 interface CreateMemberDto {
@@ -27,12 +30,18 @@ interface UpdateMemberDto {
   isActive?: boolean;
 }
 
+interface CreateApiKeyDto {
+  name?: string;
+}
+
 @Controller('members')
 @UseGuards(JwtAuthGuard)
 export class MembersController {
   constructor(
     @InjectRepository(Member)
     private memberRepository: Repository<Member>,
+    @InjectRepository(ApiKey)
+    private apiKeyRepository: Repository<ApiKey>,
   ) {}
 
   private checkAdmin(req: any) {
@@ -122,5 +131,72 @@ export class MembersController {
     }
 
     await this.memberRepository.remove(member);
+  }
+
+  // ===== API Keys Management =====
+
+  @Get(':memberId/api-keys')
+  async getApiKeys(
+    @Param('memberId') memberId: string,
+    @Req() req: any,
+  ): Promise<ApiKey[]> {
+    this.checkAdmin(req);
+
+    const member = await this.memberRepository.findOne({ where: { id: memberId } });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    return this.apiKeyRepository.find({
+      where: { memberId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  @Post(':memberId/api-keys')
+  async createApiKey(
+    @Param('memberId') memberId: string,
+    @Body() createApiKeyDto: CreateApiKeyDto,
+    @Req() req: any,
+  ): Promise<{ apiKey: ApiKey; key: string }> {
+    this.checkAdmin(req);
+
+    const member = await this.memberRepository.findOne({ where: { id: memberId } });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+
+    // Generate a secure random API key
+    const key = randomBytes(32).toString('hex');
+
+    const apiKey = this.apiKeyRepository.create({
+      key,
+      name: createApiKeyDto.name || `API Key ${new Date().toLocaleDateString()}`,
+      memberId,
+    });
+
+    const saved = await this.apiKeyRepository.save(apiKey);
+
+    // Return the key only once (it won't be shown again)
+    return { apiKey: saved, key };
+  }
+
+  @Delete(':memberId/api-keys/:keyId')
+  async deleteApiKey(
+    @Param('memberId') memberId: string,
+    @Param('keyId') keyId: string,
+    @Req() req: any,
+  ): Promise<void> {
+    this.checkAdmin(req);
+
+    const apiKey = await this.apiKeyRepository.findOne({
+      where: { id: keyId, memberId },
+    });
+
+    if (!apiKey) {
+      throw new NotFoundException('API key not found');
+    }
+
+    await this.apiKeyRepository.remove(apiKey);
   }
 }

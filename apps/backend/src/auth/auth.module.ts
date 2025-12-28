@@ -11,6 +11,7 @@ import { InitAdminService } from './init-admin.service';
 import { ConfigModule } from '../config/config.module';
 import { ConfigService } from '../config/config.service';
 import { Member } from '../entities/member.entity';
+import { ApiKey } from '../entities/api-key.entity';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Member } from '../entities/member.entity';
         signOptions: { expiresIn: '24h' },
       }),
     }),
-    TypeOrmModule.forFeature([Member]),
+    TypeOrmModule.forFeature([Member, ApiKey]),
   ],
   controllers: [AuthController],
   providers: [ApiKeyGuard, AuthService, GoogleStrategy, JwtStrategy, InitAdminService],

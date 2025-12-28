@@ -21,6 +21,15 @@ interface Member {
   updatedAt: string;
 }
 
+interface ApiKey {
+  id: string;
+  key: string;
+  name: string;
+  memberId: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
 interface AuthState {
   token: string | null;
   user: User | null;
@@ -147,6 +156,51 @@ export const membersApi = {
     });
     if (!response.ok) throw new Error('Failed to delete member');
   },
+
+  // API Keys
+  getApiKeys: async (token: string, memberId: string): Promise<ApiKey[]> => {
+    const response = await fetch(`${API_URL}/members/${memberId}/api-keys`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch API keys');
+    return response.json();
+  },
+
+  createApiKey: async (
+    token: string,
+    memberId: string,
+    name?: string
+  ): Promise<{ apiKey: ApiKey; key: string }> => {
+    const response = await fetch(`${API_URL}/members/${memberId}/api-keys`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ name }),
+    });
+    if (!response.ok) throw new Error('Failed to create API key');
+    return response.json();
+  },
+
+  deleteApiKey: async (
+    token: string,
+    memberId: string,
+    keyId: string
+  ): Promise<void> => {
+    const response = await fetch(
+      `${API_URL}/members/${memberId}/api-keys/${keyId}`,
+      {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.ok) throw new Error('Failed to delete API key');
+  },
 };
 
-export type { User, Member };
+export type { User, Member, ApiKey };
