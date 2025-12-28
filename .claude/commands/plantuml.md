@@ -14,8 +14,9 @@ Crée ou édite un diagramme PlantUML via Plant Editor.
 
 - **Sois CONCIS** : pas d'explications, pas de récapitulatif, juste le lien
 - Ne demande rien sauf si un commentaire est ambigu
-- Après création/modification, donne UNIQUEMENT le lien
+- Après création/modification, donne UNIQUEMENT le lien : `https://plant-editor.kepochan.com/diagram/<UUID>`
 - Ne propose PAS de sauvegarder dans un fichier sauf si demandé
+- **ATTENTION** : Le lien utilisateur est sur `plant-editor.kepochan.com`, PAS sur `plant-editor-api.kepochan.com`
 
 ## API
 
@@ -33,20 +34,22 @@ curl "https://plant-editor-api.kepochan.com/comments?sessionId=<UUID>" \
 
 ## Conventions PlantUML
 
-1. **`autonumber`** - Toujours activer la numérotation automatique
-2. **Box colorées** pour les macro-composants :
+1. **`title`** - OBLIGATOIRE, toujours mettre un titre descriptif
+2. **`autonumber`** - Toujours activer la numérotation automatique
+3. **Box colorées** pour les macro-composants :
    - Frontend : `#LightBlue`
    - Backend : `#LightGreen`
    - Services externes : `#LightCoral`
-3. **Participants** - Noms en trigramme ou 4 lettres minuscules (ex: `usr`, `api`, `db`, `auth`)
-4. **Retours** - Toujours utiliser `-->` (flèche pointillée) pour les réponses
-5. **JAMAIS utiliser** `activate` / `deactivate`
+4. **Participants** - Noms en trigramme ou 4 lettres minuscules (ex: `usr`, `api`, `db`, `auth`)
+5. **Retours** - Toujours utiliser `-->` (flèche pointillée) pour les réponses
+6. **JAMAIS utiliser** `activate` / `deactivate`
 
 ## Templates
 
 ### Sequence Diagram
 ```plantuml
 @startuml
+title Titre du diagramme
 autonumber
 
 box "Frontend" #LightBlue
@@ -81,6 +84,7 @@ web --> usr: Display
 ### Class Diagram
 ```plantuml
 @startuml
+title Titre du diagramme
 
 package "Domain" #LightGreen {
   class User {
@@ -111,6 +115,7 @@ User "1" -- "*" Order : places
 ### Activity Diagram
 ```plantuml
 @startuml
+title Titre du diagramme
 
 start
 
@@ -136,6 +141,7 @@ stop
 ### Component Diagram
 ```plantuml
 @startuml
+title Titre du diagramme
 
 package "Frontend" #LightBlue {
   [WebApp]
