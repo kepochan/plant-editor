@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
 import * as pako from 'pako';
+import sharp from 'sharp';
 import { ConfigService } from '../config/config.service';
 import { EventsService } from '../events/events.service';
 import { Diagram, DiagramVersion } from '../entities';
@@ -65,6 +66,37 @@ export class DiagramService {
     return `${this.configService.plantUmlPublicUrl}/${format}/${encoded}`;
   }
 
+  /**
+   * Generate a thumbnail from PlantUML code
+   * Fetches PNG from PlantUML server, resizes to 400px wide, returns as base64 data URL
+   */
+  async generateThumbnail(code: string): Promise<string | null> {
+    if (!code) return null;
+
+    try {
+      const imageUrl = this.getImageUrl(code, 'png');
+      const response = await fetch(imageUrl);
+
+      if (!response.ok) {
+        this.logger.warn(`Failed to fetch image for thumbnail: ${response.status}`);
+        return null;
+      }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+
+      // Resize to max 400px wide, maintaining aspect ratio
+      const resized = await sharp(buffer)
+        .resize({ width: 400, withoutEnlargement: true })
+        .png()
+        .toBuffer();
+
+      return `data:image/png;base64,${resized.toString('base64')}`;
+    } catch (error) {
+      this.logger.error(`Error generating thumbnail: ${error.message}`);
+      return null;
+    }
+  }
+
   private generateName(): string {
     const now = new Date();
     const date = now.toLocaleDateString('fr-FR', {
@@ -125,7 +157,7 @@ export class DiagramService {
       commentsCount: (d as any).commentsCount || 0,
       createdAt: d.createdAt,
       updatedAt: d.updatedAt,
-      imageUrl: d.currentCode ? this.getImageUrl(d.currentCode, 'png') : null,
+      imageUrl: d.thumbnail || null,
     }));
   }
 
@@ -218,6 +250,9 @@ export class DiagramService {
       diagram.name = extractedTitle;
     }
 
+    // Generate thumbnail
+    diagram.thumbnail = await this.generateThumbnail(code);
+
     await this.diagramRepository.save(diagram);
 
     // Create version entry
@@ -290,6 +325,7 @@ export class DiagramService {
     // Just update the pointer, don't create a new version
     diagram.currentVersion = versionNumber;
     diagram.currentCode = version.code;
+    diagram.thumbnail = await this.generateThumbnail(version.code);
     await this.diagramRepository.save(diagram);
 
     // Emit SSE event
@@ -360,5 +396,30 @@ export class DiagramService {
   // Legacy method for backward compatibility
   async updateDiagram(sessionId: string, code: string) {
     return this.updateCode(sessionId, code);
+  }
+
+  /**
+   * Regenerate thumbnails for all diagrams (migration utility)
+   */
+  async regenerateAllThumbnails(): Promise<{ processed: number; errors: number }> {
+    const diagrams = await this.diagramRepository.find();
+    let processed = 0;
+    let errors = 0;
+
+    for (const diagram of diagrams) {
+      if (diagram.currentCode) {
+        try {
+          diagram.thumbnail = await this.generateThumbnail(diagram.currentCode);
+          await this.diagramRepository.save(diagram);
+          processed++;
+          this.logger.log(`Regenerated thumbnail for diagram ${diagram.id}`);
+        } catch (error) {
+          errors++;
+          this.logger.error(`Failed to regenerate thumbnail for diagram ${diagram.id}: ${error.message}`);
+        }
+      }
+    }
+
+    return { processed, errors };
   }
 }

@@ -81,6 +81,12 @@ export class DiagramController {
     return this.eventsService.getEventsForSession(id);
   }
 
+  @Post('diagrams/regenerate-thumbnails')
+  @UseGuards(ApiKeyGuard)
+  regenerateThumbnails() {
+    return this.diagramService.regenerateAllThumbnails();
+  }
+
   // ===== Legacy endpoints for backward compatibility =====
 
   @Post('diagram')

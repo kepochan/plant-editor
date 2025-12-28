@@ -23,6 +23,9 @@ export class Diagram {
   @Column({ type: 'int', default: 0 })
   currentVersion: number;
 
+  @Column({ type: 'text', nullable: true })
+  thumbnail: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
