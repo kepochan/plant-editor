@@ -1,0 +1,96 @@
+services:
+  plant-editor-db:
+    image: postgres:16-alpine
+    container_name: plant-editor-db
+    environment:
+      POSTGRES_USER: plant_editor
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: plant_editor
+    volumes:
+      - plant-editor-db:/var/lib/postgresql/data
+    networks:
+      - proxy
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plant_editor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  plant-editor-backend:
+    container_name: plant-editor-backend
+    build: ./apps/backend
+    ports:
+      - "8091:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_KEY=${PLANT_EDITOR_API_KEY}
+      - PLANTUML_SERVER_URL=http://plant:8080
+      - PLANTUML_PUBLIC_URL=https://plant.kepochan.com
+      - CORS_ORIGIN=https://plant-editor.kepochan.com
+      - DATABASE_HOST=plant-editor-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=plant_editor
+      - DATABASE_USER=plant_editor
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+    depends_on:
+      plant-editor-db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plant-editor-api.entrypoints=http
+      - traefik.http.routers.plant-editor-api.rule=Host(`plant-editor-api.kepochan.com`)
+      - traefik.http.middlewares.plant-editor-api-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.plant-editor-api.middlewares=plant-editor-api-https-redirect
+      - traefik.http.routers.plant-editor-api-secure.entrypoints=https
+      - traefik.http.routers.plant-editor-api-secure.rule=Host(`plant-editor-api.kepochan.com`)
+      - traefik.http.routers.plant-editor-api-secure.tls=true
+      - traefik.http.routers.plant-editor-api-secure.tls.certresolver=http
+      - traefik.http.routers.plant-editor-api-secure.service=plant-editor-api
+      - traefik.http.services.plant-editor-api.loadbalancer.server.port=3000
+      - traefik.docker.network=proxy
+
+  plant-editor-frontend:
+    container_name: plant-editor-frontend
+    build:
+      context: ./apps/frontend
+      args:
+        - VITE_API_URL=https://plant-editor-api.kepochan.com
+        - VITE_API_KEY=${PLANT_EDITOR_API_KEY}
+    ports:
+      - "8092:80"
+    restart: unless-stopped
+    depends_on:
+      - plant-editor-backend
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.plant-editor.entrypoints=http
+      - traefik.http.routers.plant-editor.rule=Host(`plant-editor.kepochan.com`)
+      - traefik.http.middlewares.plant-editor-https-redirect.redirectscheme.scheme=https
+      - traefik.http.routers.plant-editor.middlewares=plant-editor-https-redirect
+      - traefik.http.routers.plant-editor-secure.entrypoints=https
+      - traefik.http.routers.plant-editor-secure.rule=Host(`plant-editor.kepochan.com`)
+      - traefik.http.routers.plant-editor-secure.tls=true
+      - traefik.http.routers.plant-editor-secure.tls.certresolver=http
+      - traefik.http.routers.plant-editor-secure.service=plant-editor
+      - traefik.http.services.plant-editor.loadbalancer.server.port=80
+      - traefik.docker.network=proxy
+
+volumes:
+  plant-editor-db:
+
+networks:
+  proxy:
+    external: true
